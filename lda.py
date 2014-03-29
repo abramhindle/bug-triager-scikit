@@ -1,18 +1,8 @@
 import os
 import nltk
-#import couchdb
 import json
 import re
 import math
-#import pdb; 
-
-#import scipy.spatial.distance
-#import pyflann
-
-#def connect_to_couchdb():
-#    couch = couchdb.Server() #connects to localhost:5984(by default, we could change this), our couchdb server
-#    db = couch['bugparty'] #creates an object from the bugparty db
-#    return db
 
 def get_ids(db):
     ids = db['_all_docs']
@@ -48,7 +38,7 @@ def stopwords():
         try:
             _stopwords = set(open("stop_words").read().splitlines())
         except:
-            _stopwords = {}
+            _stopwords = dict()
         _stopwords.add("")
         _stopwords.add("'s")
     return _stopwords
@@ -68,7 +58,7 @@ def convert_doc_to_count( doc, dicts ):
     return convert_tokens_to_count( tokenize( doc ), dicts)
 
 def convert_tokens_to_count( tokens, dicts ):
-    counts = {}
+    counts = dict()
     for token in tokens:
         id = dicts.get(token, -1)
         if ( id != -1):
@@ -78,7 +68,7 @@ def convert_tokens_to_count( tokens, dicts ):
 def add_doc( doc, dicts, counter ):
     tokens = tokenize( doc )
     # count tokens and make dictionary from them
-    counts = {}
+    counts = dict()
     for token in tokens:
         if (dicts.get(token, -1) == -1):
             dicts[token] = counter
@@ -92,10 +82,8 @@ def add_doc( doc, dicts, counter ):
 
 def extract_text_from_document( doc ):
     doc_comments = as_list(doc.get("comments",[]))
-    comments = "\n".join([ d2s(x["author"]) + " " + d2s(x.get("what","")) + d2s(x.get("content",""))  or '' for x in doc_comments])
+    comments = "\n".join([ d2s(x.get("what","")) + d2s(x.get("content",""))  or '' for x in doc_comments])
     outdoc = "\n".join([
-            d2sblank(doc,"owner"),
-            d2sblank(doc,"reportedBy"),
             d2sblank(doc,"title"),
             d2sblank(doc,"description"),
             d2sblank(doc,"content"),
@@ -103,17 +91,17 @@ def extract_text_from_document( doc ):
             ])
     return outdoc
 
-def load_lda_docs(db, ids ):
+def load_lda_docs(db, ids, extractor=extract_text_from_document ):
     dicts  = {"_EMPTY_":1}
     counter = 2
-    docs = {}
+    docs = dict()
     for id in ids:
         print(id)
         doc = db[id]
         #if (id == 180):
         #    pdb.set_trace()
         #    print(doc["content"])
-        outdoc = extract_text_from_document( doc )
+        outdoc = extractor( doc )
         counter, counts = add_doc( outdoc, dicts, counter )
 	if (len(counts) == 0):
             counts = {1:1}
@@ -121,7 +109,7 @@ def load_lda_docs(db, ids ):
     return docs, dicts
 
 def load_lda_docs_for_inference(db, ids, dicts ):
-    docs = {}
+    docs = dict()
     for id in ids:
         print(id)
         doc = db[id]
@@ -259,7 +247,7 @@ def compact_cosine( dtm, ids, topn = 50 ):
     This function makes a reduced cosine distance, it uses more computation
     but should stay in memory 
     '''
-    out = {}
+    out = dict()
     for i in range(0, len(dtm)):
         l = scipy.spatial.distance.cdist( dtm[i:i+1], dtm[0:], 'cosine' )
         v = l[0]
@@ -275,7 +263,7 @@ def nn( dtm, ids, topn = 25, distance = 'kl' ):
     pyflann.set_distance_type('kl')
     flann = FLANN()
     result, dists = flann.nn(array(dtm),array(dtm), topn)#,algorithm='kmeans')
-    out = {}
+    out = dict()
     for ielm in range(0, len(dtm)):
         indices = result[ielm]        
         v = dists[ielm]

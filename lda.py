@@ -161,7 +161,7 @@ def make_vr_lda_input( docs, dicts, filename = "out/vr_lda_input.lda.txt", filen
 def dict_bits( dicts ):
     return int(math.ceil(math.log(len(dicts),2)))
     
-def vm_lda_command( filename, topics, dicts ):
+def vm_lda_command( filename, topics, dicts, alpha=0.01, beta=0.01):
     stopics = str(topics)
     bits = dict_bits(dicts)
     # removed cache file
@@ -170,9 +170,11 @@ def vm_lda_command( filename, topics, dicts ):
     except:
         True
     #return " %s --lda %s --lda_alpha 0.1 --lda_rho 0.1 --minibatch 256 --power_t 0.5 --initial_t 1 -b %d --passes 2 -c  -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
-    return " %s --lda %s --lda_alpha 0.1 --lda_rho 0.1 --power_t 0.5 --initial_t 1 -b %d --passes 2 -c  -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
-        "/home/hindle1/src/vowpal_wabbit/vowpalwabbit/vw", 
+    return " %s --lda %s --lda_alpha %s --lda_rho %s --minibatch 256 --power_t 0.5 --initial_t 1 -b %d --passes 4 -c  -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
+        "vw",
         stopics,
+	alpha,
+	beta,
         bits,
         stopics,
         stopics,
@@ -186,7 +188,7 @@ def vm_lda_inference_command( filename, topics, dicts ):
     # removed cache file
     # http://tech.groups.yahoo.com/group/vowpal_wabbit/message/820
     return " %s --lda %s -b %d --testonly -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
-        "/home/hindle1/src/vowpal_wabbit/vowpalwabbit/vw", 
+        "vw",
         stopics,
         bits,
         stopics,
@@ -195,7 +197,7 @@ def vm_lda_inference_command( filename, topics, dicts ):
         )
 
 
-def summarize_topics( n, dicts, readable_model_lines, max_words = 25 ):
+def summarize_topics( n, dicts, readable_model_lines, max_words = 256 ):
     '''  this returns a summary of the topic model as words and a matrix of terms '''
     nlines = len( readable_model_lines )
     topics = [[0 for x in range(0, nlines)] for y in range(0, n)] 

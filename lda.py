@@ -1,5 +1,7 @@
 import os
 import nltk
+from nltk.tokenize import RegexpTokenizer
+from nltk.tokenize import TreebankWordTokenizer
 import json
 import re
 import math
@@ -44,14 +46,20 @@ def stopwords():
     return _stopwords
 
 stopwordp = re.compile("^[a-zA-Z0-9\\._\\/\\\\]+$",re.I)
+#stopwordp = re.compile("^[a-zA-Z0-9]+$",re.I)
+
 def filter_stopwords( tokens ):
     global stopwordp
     sw = stopwords()
     w1 = [x for x in tokens if not(x in sw)] 
     return [y for y in w1 if not(None == stopwordp.match(y))]
 
+_tokenizer = RegexpTokenizer(r'\w+')
+#_tokenizer = TreebankWordTokenizer()
+
 def tokenize( text ):
-    tokens = filter_stopwords( nltk.word_tokenize( text.lower() ) )
+    global _tokenizer
+    tokens = filter_stopwords( _tokenizer.tokenize( text.lower() ) )
     return tokens
 
 def convert_doc_to_count( doc, dicts ):
@@ -149,7 +157,7 @@ def make_vr_lda_input( docs, dicts, filename = "out/vr_lda_input.lda.txt", filen
 def dict_bits( dicts ):
     return int(math.ceil(math.log(len(dicts),2)))
     
-def vm_lda_command( filename, topics, dicts, alpha=0.01, beta=0.01):
+def vm_lda_command( filename, topics, dicts, alpha=0.01, beta=0.01, passes=1):
     stopics = str(topics)
     bits = dict_bits(dicts)
     # removed cache file
@@ -158,12 +166,13 @@ def vm_lda_command( filename, topics, dicts, alpha=0.01, beta=0.01):
     except:
         True
     #return " %s --lda %s --lda_alpha 0.1 --lda_rho 0.1 --minibatch 256 --power_t 0.5 --initial_t 1 -b %d --passes 2 -c  -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
-    return " %s --lda %s --lda_alpha %s --lda_rho %s --minibatch 256 --power_t 0.5 --initial_t 1 -b %d --passes 4 -c  -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
+    return " %s --lda %s --lda_alpha %s --lda_rho %s --minibatch 256 --power_t 0.5 --initial_t 1 -b %d -c --passes %d -p out/predictions-%s.dat --readable_model out/topics-%s.dat  %s" % (
         "vw",
         stopics,
 	alpha,
 	beta,
         bits,
+        passes,
         stopics,
         stopics,
         filename
@@ -229,18 +238,20 @@ def summarize_topics_from_file(n, dicts, readable_model_filename ):
     file.close()
     return summarize_topics(n, dicts, text )
 
-def summarize_document_topic_matrix(n, lines):
+def summarize_document_topic_matrix(n, lines, passes=1):
     ''' each line is a set of numbers indicating the topic association '''
+    if (passes > 1):
+        lines = lines[len(lines) - len(lines)/passes:]
     nlines = len( lines )
     docs = [[0 for x in range(0, n)] for y in range(0, nlines)] 
     return [[float(x) for x in line.rstrip().split(" ")] for line in lines]
 
 
-def summarize_document_topic_matrix_from_file( n, document_topic_matrix_filename ):
+def summarize_document_topic_matrix_from_file( n, document_topic_matrix_filename, passes=1 ):
     file = open( document_topic_matrix_filename, "r" )
     text = file.readlines()
     file.close()
-    return summarize_document_topic_matrix( n, text )
+    return summarize_document_topic_matrix( n, text, passes=passes )
 
 def compact_cosine( dtm, ids, topn = 50 ):
     ''' 
@@ -270,20 +281,5 @@ def nn( dtm, ids, topn = 25, distance = 'kl' ):
         ol = [{"id":ids[indices[i]],"i":i,"r":v[i]} for i in range(0,len(indices))]
         out[ids[ielm]] = ol
     return out
-
-def main():
-    raise Exception("No CouchDB")
-    db = connect_to_couchdb()
-    ids = get_ids(db)
-    #sids = ids[1:100]
-    sids = ids
-    docs, dicts = load_lda_docs(db, sids)
-    filename, _ = make_vr_lda_input( docs, dicts )
-    command = vm_lda_command(filename, 20)
-    print(command)
-    os.system( command )
-
-if __name__ == "__main__":
-    main()
 
 #humor me

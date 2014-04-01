@@ -285,3 +285,34 @@ def nn( dtm, ids, topn = 25, distance = 'kl' ):
     return out
 
 #humor me
+class LDA(object):
+
+    def __init__(self, params=None):
+        if (params == None):
+            params = dict()
+        self.alpha = params.get("alpha",0.1)
+        self.beta = params.get("beta",0.1)
+        self.passes = params.get("beta",1)
+        self.ntopics = params.get("ntopics", params.get("topics", 20))
+        self.init_params = params
+        self.documents_loaded = False
+        
+    def load_documents(self, document_db, ids):
+        docs, dicts = lda.load_lda_docs(ldocs, lids)
+        self.docs = docs
+        self.dicts = dicts
+        self.documents_loaded = True
+        return (docs, dicts)
+
+    def prepare_lda(self):
+        if (not self.documents_loaded):
+            raise Exception("Documents are not loaded!")
+        filename, _ = lda.make_vr_lda_input( self.docs, self.dicts )
+        self.filename = filename
+        
+    def lda_command(self):
+        command = lda.vm_lda_command(filename, ntopics, dicts, alpha=alpha, beta=beta, passes=passes)
+
+
+    
+        

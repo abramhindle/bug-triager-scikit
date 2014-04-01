@@ -5,6 +5,7 @@ from nltk.tokenize import TreebankWordTokenizer
 import json
 import re
 import math
+import csv
 
 def dumptojsonfile( filename, data, indent=2):
     file = open(filename, "w")
@@ -51,8 +52,8 @@ def stopwords():
         _stopwords.add("'s")
     return _stopwords
 
-stopwordp = re.compile("^[a-zA-Z0-9\\._\\/\\\\]+$",re.I)
-#stopwordp = re.compile("^[a-zA-Z0-9]+$",re.I)
+#stopwordp = re.compile("^[a-zA-Z0-9\\._\\/\\\\]+$",re.I)
+stopwordp = re.compile("^[a-zA-Z0-9]+$",re.I)
 
 def filter_stopwords( tokens ):
     global stopwordp
@@ -63,23 +64,66 @@ def filter_stopwords( tokens ):
 _tokenizer = RegexpTokenizer(r'\w+')
 #_tokenizer = TreebankWordTokenizer()
 
-def tokenize( text ):
-    global _tokenizer
-    tokens = filter_stopwords( _tokenizer.tokenize( text.lower() ) )
+def tokenize( text, tokenizer=_tokenizer):
+    tokens = filter_stopwords( tokenizer.tokenize( text.lower() ) )
     return tokens
 
-def convert_doc_to_count( doc, dicts ):
-    return convert_tokens_to_count( tokenize( doc ), dicts)
 
-def convert_tokens_to_count( tokens, dicts ):
-    counts = dict()
-    for token in tokens:
-        id = dicts.get(token, -1)
-        if ( id != -1):
-            counts[id] = counts.get(id, 0) + 1
-    return counts
+def filter_words_by_frequency(dicts, doc_db, filter_fun):
+    newdict = dict()
+    newdocs = dict()
+    ndocs = dict()
+    removedwords = set()
+    # count words
+    for key, doc in doc_db.iteritems():
+        for w in doc:
+            ndocs[w] = ndocs.get(w,0) + 1
+    keptwords = dict((x,c) for x,c in ndocs.iteritems() if filter_fun(x,c))
+    newmap = dict()
+    cnt = 2
+    for word, count in keptwords:
+        newmap
+    # drop the bad words
+    for key, doc in doc_db.iteritems():
+        ndocs[key] = [w for w in doc if w in keptwords]
+    # map the words to new values
+    for key, doc in doc_db.iteritems():
+        ndocs[key] = [w for w in doc if w in keptwords]
+    raise Exception("Not Done Don't Use")    
 
-def add_doc( doc, dicts, counter ):
+def filter_words_in_only_n_file(dicts, doc_db, n=1):
+    ndocs = len(doc_db)
+    mincount = n
+    def thresh(word, count):
+        return (count >= mincount)
+    
+    return filter_words_by_frequency( dicts, doc_db, thresh)
+
+def filter_uncommon_word(dicts, doc_db, threshold=0.01):
+    ndocs = len(doc_db)
+    mincount = max(1,math.ceil(ndocs * threshold))
+    def thresh(word, count):
+        return (count >= mincount)    
+    return filter_words_by_frequency( dicts, doc_db, thresh)
+
+def filter_common_word(dicts, doc_db, threshold=0.8):
+    ndocs = len(doc_db)
+    mincount = max(1,math.ceil(ndocs * threshold))
+    def thresh(word, count):
+        return (count <= mincount)    
+    return filter_words_by_frequency( dicts, doc_db, thresh)
+
+def filter_and_uncommon_common_word(dicts, doc_db, lowthreshold=0.01, highthreshold=0.8):
+    ndocs = len(doc_db)
+    mincount = max(1,math.ceil(ndocs * lowthreshold))
+    maxcount = max(1,math.ceil(ndocs * highthreshold))
+    def thresh(word, count):
+        return (count >= mincount and count <= maxcount)
+    return filter_words_by_frequency( dicts, doc_db, thresh)
+
+
+
+def add_doc( doc, dicts, counter, tokenizer=_tokenizer ):
     tokens = tokenize( doc )
     # count tokens and make dictionary from them
     counts = dict()
@@ -105,7 +149,7 @@ def extract_text_from_document( doc ):
             ])
     return outdoc
 
-def load_lda_docs(db, ids, extractor=extract_text_from_document ):
+def load_lda_docs(db, ids, extractor=extract_text_from_document, tokenizer=_tokenizer ):
     dicts  = {"_EMPTY_":1}
     counter = 2
     docs = dict()
@@ -116,19 +160,7 @@ def load_lda_docs(db, ids, extractor=extract_text_from_document ):
         #    pdb.set_trace()
         #    print(doc["content"])
         outdoc = extractor( doc )
-        counter, counts = add_doc( outdoc, dicts, counter )
-	if (len(counts) == 0):
-            counts = {1:1}
-        docs[id] = counts
-    return docs, dicts
-
-def load_lda_docs_for_inference(db, ids, dicts ):
-    docs = dict()
-    for id in ids:
-        print(id)
-        doc = db[id]
-        outdoc = extract_text_from_document( doc )
-        counts = convert_doc_to_count( outdoc, dicts )
+        counter, counts = add_doc( outdoc, dicts, counter, tokenizer=tokenizer )
 	if (len(counts) == 0):
             counts = {1:1}
         docs[id] = counts
@@ -156,9 +188,7 @@ def make_vr_lda_input( docs, dicts, filename = "out/vr_lda_input.lda.txt", filen
     wfile.write(json.dumps(dicts, indent=2))
     wfile.close()
 
-
     return filename, filenameid
-
 
 def dict_bits( dicts ):
     return int(math.ceil(math.log(len(dicts),2)))
@@ -179,21 +209,6 @@ def vm_lda_command( filename, topics, dicts, alpha=0.01, beta=0.01, passes=1):
 	beta,
         bits,
         passes,
-        stopics,
-        stopics,
-        filename
-        )
-
-def vm_lda_inference_command( filename, topics, dicts ):
-    stopics = str(topics)
-    bits = dict_bits(dicts)
-
-    # removed cache file
-    # http://tech.groups.yahoo.com/group/vowpal_wabbit/message/820
-    return " %s --lda %s -b %d --testonly -p out/predictions-%s.dat --readable_model out/topics-%s.dat %s" % (
-        "vw",
-        stopics,
-        bits,
         stopics,
         stopics,
         filename
@@ -259,44 +274,18 @@ def summarize_document_topic_matrix_from_file( n, document_topic_matrix_filename
     file.close()
     return summarize_document_topic_matrix( n, text, passes=passes )
 
-def compact_cosine( dtm, ids, topn = 50 ):
-    ''' 
-    This function makes a reduced cosine distance, it uses more computation
-    but should stay in memory 
-    '''
-    out = dict()
-    for i in range(0, len(dtm)):
-        l = scipy.spatial.distance.cdist( dtm[i:i+1], dtm[0:], 'cosine' )
-        v = l[0]
-        indices = sorted_indices(v)[0:topn]
-        ol = [{"id":ids[ind],"i":ind,"r":v[ind]} for ind in indices]
-        out[ids[i]] = ol
-    return out
-
-def nn( dtm, ids, topn = 25, distance = 'kl' ):
-    ''' 
-    nearest neighbor
-    '''
-    pyflann.set_distance_type('kl')
-    flann = FLANN()
-    result, dists = flann.nn(array(dtm),array(dtm), topn)#,algorithm='kmeans')
-    out = dict()
-    for ielm in range(0, len(dtm)):
-        indices = result[ielm]        
-        v = dists[ielm]
-        ol = [{"id":ids[indices[i]],"i":i,"r":v[i]} for i in range(0,len(indices))]
-        out[ids[ielm]] = ol
-    return out
-
-#humor me
+# LDA Object -- manages most state internally
 class LDA(object):
     def __init__(self, params=None):
+        global _tokenizer
         if (params == None):
             params = dict()
         self.alpha = params.get("alpha",0.1)
         self.beta = params.get("beta",0.1)
         self.passes = params.get("passes",1)
         self.ntopics = params.get("ntopics", params.get("topics", 20))
+        self.tokenizer = params.get("tokenizer",_tokenizer)
+        self.extractor = params.get("extractor", extract_text_from_document)
         self.init_params = params
         self.documents_loaded = False
         self.lda_prepared = False
@@ -304,7 +293,7 @@ class LDA(object):
         self.lda_has_run = False
 
     def load_documents(self, document_db, ids):
-        docs, dicts = load_lda_docs(document_db, ids)
+        docs, dicts = load_lda_docs(document_db, ids, extractor=self.extractor, tokenizer=self.tokenizer)
         self.ids = ids
         self.docs = docs
         self.dicts = dicts
@@ -352,12 +341,33 @@ class LDA(object):
         self.doc_top_mat_map = doc_top_mat_map
         return (document_topic_matrix, doc_top_mat_map)
 
+    def dump_doc_top_to_csv(self):
+        try:
+            ids = []
+            try:
+                ids = [ int(x) for x in self.doc_top_mat_map.keys() ]
+                ids.sort()
+                #ids = [str(x) for x in ids]
+            except:
+                ids = [x for x in self.doc_top_mat_map.keys()]
+                ids.sort()
+            doctop = self.doc_top_mat_map
+            with open('out/document_topic_map.csv', 'wb') as f:
+                writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+                head = ["Doc"] + ["T%s" % x for x in range(1,self.ntopics+1)]
+                writer.writerow(head)
+                for id in ids:
+                    writer.writerow([id]+doctop[id])
+        except AttributeError:
+            raise Exception("Please run summarize_topics and summarize_document_topic_matrix")
+                
     def dump_to_json(self):
         try:
             dumptojsonfile("out/lda-topics.json", self.topics)
             dumptojsonfile("out/summary.json", self.summary)
             dumptojsonfile("out/document_topic_matrix.json", self.document_topic_matrix)
             dumptojsonfile("out/document_topic_map.json", self.doc_top_mat_map)
+            self.dump_doc_top_to_csv()
         except AttributeError:
             raise Exception("Please run summarize_topics and summarize_document_topic_matrix")
         

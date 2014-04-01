@@ -9,14 +9,15 @@ parser.add_argument('--alpha', help='alpha', type=float, default=0.01)
 parser.add_argument('--beta', help='beta', type=float, default=0.01)
 parser.add_argument('--passes', help='passes', type=int, default=10)
 parser.add_argument('--topics', help='number of topics', type=int, default=20)
+parser.add_argument('--file', help='input file',default="large.json")
 
 
 # [X] Convert params into a dict
-# [ ] Command line options
+# [X] Command line options
 # [ ] Optional Stemming
-# [ ] better splitter
-# [ ] injectable splitter
-# [ ] more command line options
+# [X] better splitter
+# [X] injectable splitter
+# [X] more command line options
 # [X] refactor LDA into a class
 # [ ] filter by min and max
 
@@ -75,7 +76,7 @@ def oo_main():
     myLDA = lda.LDA( params={ "ntopics": ntopics, "alpha": alpha, "beta": beta, "passes": passes} )
     print myLDA.passes
     print myLDA.init_params
-    ldocs, lids = read_json_file("large.json")
+    ldocs, lids = read_json_file(args.get("file","large.json"))
     dumptojsonfile("out/lids.json", lids)
     docs, dicts, words = myLDA.load_documents(ldocs, lids)
     dumptojsonfile("out/words.json",words)

@@ -1,5 +1,7 @@
 import os
 import nltk
+from nltk.tokenize import RegexpTokenizer
+from nltk.tokenize import TreebankWordTokenizer
 import json
 import re
 import math
@@ -44,14 +46,20 @@ def stopwords():
     return _stopwords
 
 stopwordp = re.compile("^[a-zA-Z0-9\\._\\/\\\\]+$",re.I)
+#stopwordp = re.compile("^[a-zA-Z0-9]+$",re.I)
+
 def filter_stopwords( tokens ):
     global stopwordp
     sw = stopwords()
     w1 = [x for x in tokens if not(x in sw)] 
     return [y for y in w1 if not(None == stopwordp.match(y))]
 
+_tokenizer = RegexpTokenizer(r'\w+')
+#_tokenizer = TreebankWordTokenizer()
+
 def tokenize( text ):
-    tokens = filter_stopwords( nltk.word_tokenize( text.lower() ) )
+    global _tokenizer
+    tokens = filter_stopwords( _tokenizer.tokenize( text.lower() ) )
     return tokens
 
 def convert_doc_to_count( doc, dicts ):

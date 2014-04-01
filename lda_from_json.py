@@ -3,6 +3,15 @@ import lda
 import os
 import sys
 
+# [ ] Convert params into a dict
+# [ ] Command line options
+# [ ] Optional Stemming
+# [ ] better splitter
+# [ ] injectable splitter
+# [ ] more command line options
+# [ ] refactor LDA into a class
+# [ ] filter by min and max
+
 ntopics = 20
 alpha = 0.01
 beta = 0.01
@@ -33,7 +42,7 @@ def main():
     dumptojsonfile("out/lids.json", lids)
     docs, dicts = lda.load_lda_docs(ldocs, lids)
     dumptojsonfile("out/dicts.json", dicts)
-    words = {v:k for k, v in x.items()}
+    words = {v:k for k, v in dicts.items()}
     dumptojsonfile("out/words.json",words)
     filename, _ = lda.make_vr_lda_input( docs, dicts )
     command = lda.vm_lda_command(filename, ntopics, dicts, alpha=alpha, beta=beta, passes=passes)

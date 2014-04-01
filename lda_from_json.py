@@ -2,14 +2,22 @@ import json
 import lda
 import os
 import sys
+import argparse
 
-# [ ] Convert params into a dict
+parser = argparse.ArgumentParser(description='Run LDA on entries from within a JSON.')
+parser.add_argument('--alpha', help='alpha', type=float, default=0.01)
+parser.add_argument('--beta', help='beta', type=float, default=0.01)
+parser.add_argument('--passes', help='passes', type=int, default=10)
+parser.add_argument('--topics', help='number of topics', type=int, default=20)
+
+
+# [X] Convert params into a dict
 # [ ] Command line options
 # [ ] Optional Stemming
 # [ ] better splitter
 # [ ] injectable splitter
 # [ ] more command line options
-# [ ] refactor LDA into a class
+# [X] refactor LDA into a class
 # [ ] filter by min and max
 
 ntopics = 20
@@ -57,10 +65,12 @@ def proc_main():
     dumptojsonfile("out/document_topic_map.json", doc_top_mat_map)
 
 def oo_main():
-    global ntopics
-    global alpha
-    global beta
-    global passes
+
+    args = vars(parser.parse_args())
+    ntopics = args.get("topics", 20)
+    beta = args.get("beta", 0.01)
+    alpha = args.get("alpha", 0.01)
+    passes = args.get("passes", 10)
     os.system( "mkdir out" )
     myLDA = lda.LDA( params={ "ntopics": ntopics, "alpha": alpha, "beta": beta, "passes": passes} )
     print myLDA.passes

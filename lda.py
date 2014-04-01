@@ -6,6 +6,12 @@ import json
 import re
 import math
 
+def dumptojsonfile( filename, data, indent=2):
+    file = open(filename, "w")
+    file.write(json.dumps(data, indent=indent))
+    file.close()
+
+
 def get_ids(db):
     ids = db['_all_docs']
     ids = [x["id"] for x in ids["rows"] if x["id"][0] != "_" ]
@@ -284,33 +290,84 @@ def nn( dtm, ids, topn = 25, distance = 'kl' ):
 
 #humor me
 class LDA(object):
-
     def __init__(self, params=None):
         if (params == None):
             params = dict()
         self.alpha = params.get("alpha",0.1)
         self.beta = params.get("beta",0.1)
-        self.passes = params.get("beta",1)
+        self.passes = params.get("passes",1)
         self.ntopics = params.get("ntopics", params.get("topics", 20))
         self.init_params = params
         self.documents_loaded = False
-        
+        self.lda_prepared = False
+        self.command = None
+        self.lda_has_run = False
+
     def load_documents(self, document_db, ids):
-        docs, dicts = lda.load_lda_docs(ldocs, lids)
+        docs, dicts = load_lda_docs(document_db, ids)
+        self.ids = ids
         self.docs = docs
         self.dicts = dicts
+        self.words = {v:k for k, v in dicts.items()}
         self.documents_loaded = True
-        return (docs, dicts)
+        return (self.docs, self.dicts, self.words)
 
     def prepare_lda(self):
         if (not self.documents_loaded):
             raise Exception("Documents are not loaded!")
-        filename, _ = lda.make_vr_lda_input( self.docs, self.dicts )
+        filename, _ = make_vr_lda_input( self.docs, self.dicts )
         self.filename = filename
+        self.lda_prepared = True
         
     def lda_command(self):
-        command = lda.vm_lda_command(filename, ntopics, dicts, alpha=alpha, beta=beta, passes=passes)
+        if (not self.lda_prepared):
+            raise Exception("LDA Not prepared")
+        command = vm_lda_command(self.filename, self.ntopics, self.dicts, alpha=self.alpha, beta=self.beta, passes=self.passes)
+        self.command = command
+        print("Command %s" % command)
+        return command
 
+    def run_lda(self):
+        if (self.command == None):
+            self.lda_command()
+        print(self.command)
+        os.system( self.command )
+        self.lda_has_run = True
+        return self.lda_has_run
 
-    
+    def summarize_topics(self):
+        if (not self.lda_has_run):
+            raise Exception("LDA Not Run -- Run LDA first")
+        self.topic_file_name = ("out/topics-%s.dat" % self.ntopics)
+        topics, summary = summarize_topics_from_file( self.ntopics, self.dicts, self.topic_file_name  )
+        self.topics = topics
+        self.summary = summary
+        return (topics, summary)
+
+    def summarize_document_topic_matrix(self):
+        self.prediction_file = ("out/predictions-%s.dat" % self.ntopics)
+        document_topic_matrix = summarize_document_topic_matrix_from_file( self.ntopics, self.prediction_file , passes=self.passes )
+        doc_top_mat_map = dict( (self.ids[i], document_topic_matrix[i]) for i in range(0,len(self.ids)) )
+        self.document_topic_matrix = document_topic_matrix
+        self.doc_top_mat_map = doc_top_mat_map
+        return (document_topic_matrix, doc_top_mat_map)
+
+    def dump_to_json(self):
+        try:
+            dumptojsonfile("out/lda-topics.json", self.topics)
+            dumptojsonfile("out/summary.json", self.summary)
+            dumptojsonfile("out/document_topic_matrix.json", self.document_topic_matrix)
+            dumptojsonfile("out/document_topic_map.json", self.doc_top_mat_map)
+        except AttributeError:
+            raise Exception("Please run summarize_topics and summarize_document_topic_matrix")
         
+    def run(self):
+        if (not self.documents_loaded):
+            raise Exception("Documents are not loaded!")
+        self.prepare_lda()
+        self.lda_command()
+        self.run_lda()
+        self.summarize_topics()
+        self.summarize_document_topic_matrix()
+        self.dump_to_json()
+        return True

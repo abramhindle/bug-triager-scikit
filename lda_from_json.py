@@ -36,7 +36,7 @@ def read_json_file( filename ):
     return  docs, ids
 
 
-def main():
+def proc_main():
     os.system( "mkdir out" )
     ldocs, lids = read_json_file("large.json")
     dumptojsonfile("out/lids.json", lids)
@@ -56,6 +56,26 @@ def main():
     dumptojsonfile("out/document_topic_matrix.json", document_topic_matrix)
     dumptojsonfile("out/document_topic_map.json", doc_top_mat_map)
 
+def oo_main():
+    global ntopics
+    global alpha
+    global beta
+    global passes
+    os.system( "mkdir out" )
+    myLDA = lda.LDA( params={ "ntopics": ntopics, "alpha": alpha, "beta": beta, "passes": passes} )
+    print myLDA.passes
+    print myLDA.init_params
+    ldocs, lids = read_json_file("large.json")
+    dumptojsonfile("out/lids.json", lids)
+    docs, dicts, words = myLDA.load_documents(ldocs, lids)
+    dumptojsonfile("out/words.json",words)
+    myLDA.prepare_lda()
+    myLDA.run_lda()
+    topics, summary = myLDA.summarize_topics()
+    document_topic_matrix = myLDA.summarize_document_topic_matrix()
+    myLDA.dump_to_json()
+    
 
 if __name__ == "__main__":
-    main()
+    #proc_main()
+    oo_main()

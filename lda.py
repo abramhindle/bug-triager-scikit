@@ -53,7 +53,7 @@ def stopwords():
     return _stopwords
 
 #stopwordp = re.compile("^[a-zA-Z0-9\\._\\/\\\\]+$",re.I)
-stopwordp = re.compile("^[a-zA-Z0-9]+$",re.I)
+stopwordp = re.compile("^[a-zA-Z]+$",re.I)
 
 def filter_stopwords( tokens ):
     global stopwordp

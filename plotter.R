@@ -84,7 +84,7 @@ topics <- names(v)[2:21]
 svg("Everything.svg",width=17,height=22)
 par(mfrow=c(10,2))
 par(oma=c(1,1,1,1))
-par(mar=c(2,4,1,1))
+par(mar=c(2,5,1,1))
 par(cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 sapply(c(1:20), function(topic) {
     ttopic = paste(c("T",topic),collapse="",sep="")

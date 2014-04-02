@@ -1,4 +1,4 @@
-GitHub LDA Summarizer
+GitHub Issue Tracker LDA Summarizer
 
 === Use ===
 
@@ -6,9 +6,19 @@ To mirror the repo:
 
 bash gh.sh USERNAME / REPO 
 
+To use existing data
+
+python lda_from_json.py --file data/boostrap/large.json --passes 10 --alpha 0.01 --beta 0.01 --topics 20
+
 === Deps ===
 
 A lot of libraries :(
+
+- Vowpal Wabbit
+- Ruby
+  - Octokit
+- R
+  - zoo
 
 === Files ===
 
@@ -17,7 +27,7 @@ git-grep.pl - convert a git repo to an appropriate format
 lda_from_json.py - run lda on issues and commits 
 lda.py - lda lib
 lda-to-csv.pl - convert lda output to csv for R
-plots.R - R to make plots and run the study
+plotter.R - R to make plots and run the study
 project.sh - how to extract a project in the data directory
 
 === LICENSE ===

@@ -228,9 +228,9 @@ def summarize_topics( n, dicts, readable_model_lines, max_words = 256 ):
             line = line.rstrip()
             topic = 0
             #print("["+line+"]")
-            elms = [float(x) for x in line.split(" ")]
+            elms = [float(x) for x in line.split(" ")[1:]]
             for topic in range(0, n):
-                topics[topic][word] = elms[1+topic]
+                topics[topic][word] = elms[topic]
             word += 1
     # now we have that matrix
     # per each topic find the most prevelant word
@@ -352,12 +352,18 @@ class LDA(object):
                 ids = [x for x in self.doc_top_mat_map.keys()]
                 ids.sort()
             doctop = self.doc_top_mat_map
+            head = ["Doc"] + ["T%s" % x for x in range(1,self.ntopics+1)]
             with open('out/document_topic_map.csv', 'wb') as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-                head = ["Doc"] + ["T%s" % x for x in range(1,self.ntopics+1)]
                 writer.writerow(head)
                 for id in ids:
                     writer.writerow([id]+doctop[id])
+            with open('out/document_topic_map_norm.csv', 'wb') as f:
+                writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(head)
+                for id in ids:
+                    s = sum(doctop[id])
+                    writer.writerow([id]+[x/s for x in doctop[id]])
         except AttributeError:
             raise Exception("Please run summarize_topics and summarize_document_topic_matrix")
                 

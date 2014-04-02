@@ -42,6 +42,7 @@ def read_json_file( filename ):
     for doc in ldocs:
         docs[doc["_id"]] = doc
     ids = [ doc["_id"] for doc in ldocs ]
+    ids.sort()
     return  docs, ids
 
 

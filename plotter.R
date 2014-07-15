@@ -55,7 +55,7 @@ avgperday <- function(v,vday,column, minreplace=0) {
 polyplot <- function(l,xlabels=c(),
                      ourTitle = "title",
                      color = "aquamarine",
-                     ylabel = "Avg. Topic\nWeight",
+                     ylabel = "Avg. Topic Weight",
                      xlabel = "Time",
                      borderColor = "black",
                      nlabels = 20) {
@@ -65,9 +65,7 @@ polyplot <- function(l,xlabels=c(),
   ml <- min(l)
   maxl <- max(l)
   yy <- c(l, l*0+ml)
-  plot(c(),xlim=c(1,length(l)),ylim=c(ml,maxl),xaxt="n",ylab=ylabel,xlab=xlabel)
-  legend("topright", title=ourTitle,c(""),cex=3.0,bty="n")
-  #plot(c(),xlim=c(1,length(l)),ylim=c(ml,maxl),xaxt="n",ylab=ylabel,xlab=xlabel,main=ourTitle)
+  plot(c(),xlim=c(1,length(l)),ylim=c(ml,maxl),xaxt="n",ylab=ylabel,xlab=xlabel,main=ourTitle)
   if (length(l) > nlabels) {
     n <- length(l)
     nlx <- round(lx*(n/nlabels))
@@ -83,12 +81,11 @@ polyplot <- function(l,xlabels=c(),
 topics <- names(v)[2:21]
 
 
-svg("Everything.svg",width=18,height=22)
+svg("Everything.svg",width=17,height=22)
 par(mfrow=c(10,2))
 par(oma=c(1,1,1,1))
-par(mar=c(2,9,1,1))
-par(mgp=c(4, 2, 0))
-par(cex.lab=3.0, cex.axis=3.0, cex.main=3.0, cex.sub=3.0)
+par(mar=c(2,5,1,1))
+par(cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 sapply(c(1:20), function(topic) {
     ttopic = paste(c("T",topic),collapse="",sep="")
     file <- paste(c(ttopic, ".svg"),collapse="",sep="")
@@ -98,8 +95,7 @@ sapply(c(1:20), function(topic) {
     v$dd <- as.Date(v$day)
     f <- mean
     vals <- sapply(ldays, function(day) { f(v[v$dd >= as.Date(day) & v$dd < as.Date(day)+n, ttopic]) })
-    titles <- sapply(ldays, function(x) { paste(strsplit(as.character(x),"-")[[1]][1:2],collapse="/") })
-    polyplot(vals, titles, ourTitle = ttopic, color=colors[topic])
+    polyplot(vals, ldays, ourTitle = ttopic, color=colors[topic])
     lines(lowess(vals))
     #dev.off()
 })

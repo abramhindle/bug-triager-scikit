@@ -73,6 +73,14 @@ class GH
       temp_issues = client.list_issues(repo, :state => "open", :page => page)
       issues = issues + temp_issues;
     end while not temp_issues.empty?
+    issues = issues.map { |issue|
+                          r = issue.to_hash() 
+			  r[:user] = r[:user].to_hash
+			  r[:assignee] = r[:assignee] ? r[:assignee].to_hash : nil
+			  r[:labels] = r[:labels].map { | label | 
+                                                        label.to_hash }
+			  r }
+    puts issues
     @issues = issues
     return issues
   end
@@ -103,6 +111,10 @@ class GH
       done = newcomments == []
       page = page + 1
     end
+    comments = comments.map { |comment| 
+                              r = comment.to_hash
+			      r[:user] = r[:user].to_hash
+			      r }
     return comments
   end
 
@@ -112,7 +124,7 @@ class GH
     comments = self._get_comments_from_gh()
 
     comments.each do |comment|
-      comment["issue_id"] = comment.issue_url.split("/")[-1].to_i
+      comment["issue_id"] = comment[:issue_url].split("/")[-1].to_i
       num = comment["issue_id"]
       if (!@comments[num])
         @comments[num] = []
@@ -121,7 +133,7 @@ class GH
     end
     issues = @issues
     issues.each do |issue|
-      mynum = issue['number']
+      mynum = issue[:number]
       if (!@comments[mynum])
         @comments[mynum] = []
       end
@@ -144,16 +156,19 @@ class GH
     # body to content
 
     issues = @issues.map { |issue| 
-      issue["_id"] = issue["number"]
-      issue["reportedBy"] = issue["user"]["login"]
-      issue["owner"] = ((issue["assignee"])?issue["assignee"]["login"]:"")
-      issue["content"] = issue["body"]
+      newissue = Hash.new
+      newissue["_id"] = issue[:number]
+      newissue["reportedBy"] = issue[:user][:login]
+      newissue["owner"] = ((issue[:assignee])?issue[:assignee][:login]:"")
+      newissue["content"] = issue[:body]
       puts(issue["comments"].length.to_s)
-      issue["comments"].each { |comment| 
-        comment["content"] = comment["body"]
-        comment["author"] = comment["user"]["login"]
+      newissue["comments"] = issue["comments"].map { |comment| 
+        newcomment = Hash.new
+        newcomment["content"] = comment[:body]
+        newcomment["author"] = comment[:user][:login]
+	newcomment
       }
-      { "doc" => issue }
+      { "doc" => newissue }
     }
     return JSON.pretty_generate( {
                                    "rows" => issues

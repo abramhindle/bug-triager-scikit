@@ -63,6 +63,7 @@ class GH
     page = 0
     begin
       page = page + 1
+      puts "Closed Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "closed", :page => page)
       issues = issues + temp_issues;
     end while not temp_issues.empty?
@@ -70,6 +71,7 @@ class GH
     page = 0
     begin
       page = page + 1
+      puts "Open Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "open", :page => page)
       issues = issues + temp_issues;
     end while not temp_issues.empty?
@@ -161,7 +163,7 @@ class GH
       newissue["reportedBy"] = issue[:user][:login]
       newissue["owner"] = ((issue[:assignee])?issue[:assignee][:login]:"")
       newissue["content"] = issue[:body]
-      puts(issue["comments"].length.to_s)
+#       puts(issue["comments"].length.to_s)
       newissue["comments"] = issue["comments"].map { |comment| 
         newcomment = Hash.new
         newcomment["content"] = comment[:body]

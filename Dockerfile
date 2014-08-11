@@ -9,6 +9,8 @@ RUN ./docker-env.sh rvm install 1.9.2
 
 RUN ./docker-env.sh gem install octokit
 
+RUN apt-get -y install vowpal-wabbit
+
 ADD . ./lda-chapter-tutorial
 WORKDIR ./lda-chapter-tutorial
 

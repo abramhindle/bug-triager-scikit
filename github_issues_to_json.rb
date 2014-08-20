@@ -79,6 +79,7 @@ class GH
                           r = issue.to_hash() 
 			  r[:user] = r[:user].to_hash
 			  r[:assignee] = r[:assignee] ? r[:assignee].to_hash : nil
+                          r[:pull_request] = r[:pull_request] ? r[:pull_request].to_hash : nil
 			  r[:labels] = r[:labels].map { | label | 
                                                         label.to_hash }
 			  r }
@@ -113,9 +114,18 @@ class GH
       done = newcomments == []
       page = page + 1
     end
+    page = 1
+    done = false
+    until done
+      puts "PR Comment Page #{page}"
+      newcomments = self.client.pull_requests_comments( REPO, { :page => page} )
+      comments += newcomments
+      done = newcomments == []
+      page = page + 1
+    end
     comments = comments.map { |comment| 
                               r = comment.to_hash
-			      r[:user] = r[:user].to_hash
+			      r[:user] = r[:user] ? r[:user].to_hash : ""
 			      r }
     return comments
   end
@@ -126,7 +136,11 @@ class GH
     comments = self._get_comments_from_gh()
 
     comments.each do |comment|
-      comment["issue_id"] = comment[:issue_url].split("/")[-1].to_i
+      if (comment[:issue_url])
+        comment["issue_id"] = comment[:issue_url].split("/")[-1].to_i
+      else
+        comment["issue_id"] = comment[:pull_request_url].split("/")[-1].to_i
+      end
       num = comment["issue_id"]
       if (!@comments[num])
         @comments[num] = []
@@ -162,12 +176,12 @@ class GH
       newissue["_id"] = issue[:number]
       newissue["reportedBy"] = issue[:user][:login]
       newissue["owner"] = ((issue[:assignee])?issue[:assignee][:login]:"")
-      newissue["content"] = issue[:body]
+      newissue["content"] = (issue[:title] ? issue[:title] : "") + "\n" + (issue[:body] ? issue[:body] : "")
 #       puts(issue["comments"].length.to_s)
       newissue["comments"] = issue["comments"].map { |comment| 
         newcomment = Hash.new
         newcomment["content"] = comment[:body]
-        newcomment["author"] = comment[:user][:login]
+        newcomment["author"] = comment[:user].is_a?(Hash) ? comment[:user][:login] : ""
 	newcomment
       }
       { "doc" => newissue }

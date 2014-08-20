@@ -34,4 +34,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    dump_text(args.input_file, args.output_folrder)
+    dump_text(args.input_file, args.output_folder)

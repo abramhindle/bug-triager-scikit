@@ -174,6 +174,7 @@ class GH
     issues = @issues.map { |issue| 
       newissue = Hash.new
       newissue["_id"] = issue[:number]
+      newissue["created_at"] = issue[:created_at]
       newissue["reportedBy"] = issue[:user][:login]
       newissue["owner"] = ((issue[:assignee])?issue[:assignee][:login]:"")
       newissue["content"] = (issue[:title] ? issue[:title] : "") + "\n" + (issue[:body] ? issue[:body] : "")

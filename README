@@ -2,11 +2,20 @@ GitHub Issue Tracker LDA Summarizer
 
 === Use ===
 
-To mirror the repo:
+To mirror the repo run:
 
 bash gh.sh USERNAME / REPO 
 
-To use existing data
+after editing config.json to look something like
+
+    {
+         "GHUSERNAME":"yourgithubaccount",
+         "GHPASSWORD":"thepasswordtoyourgithubaccount"
+    }
+
+an out directory will be made, a Everything.svg generated in the base dir.
+
+To use existing data:
 
 python lda_from_json.py --file data/boostrap/large.json --passes 10 --alpha 0.01 --beta 0.01 --topics 20
 
@@ -19,6 +28,19 @@ A lot of libraries :(
   - Octokit
 - R
   - zoo
+
+In ubuntu 14.04:
+
+sudo apt-get update
+sudo apt-get install git r-cran-zoo r-cran-zoo ruby curl vim-gnome r-cran-zoo r-base-core python-nltk build-essential vowpal-wabbit libxml-xpath-perl libxml-dom-perl libjson-perl emacs24
+sudo 
+sudo cpan -f VCI
+
+in R you can optionally install:
+    
+   install.packages("corrplot")
+   install.packages("doMC")
+   install.packages("foreach")
 
 === Files ===
 

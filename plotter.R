@@ -77,6 +77,13 @@ polyplot <- function(l,xlabels=c(),
   polygon(xx,yy,col=color,border=borderColor,lty=1)  
 }
 
+zeromean <- function(l) {
+    if (length(l)==0) {
+        return(0)
+    } else {
+        return(mean(l))
+    }
+}
 
 topics <- names(v)[2:21]
 
@@ -93,7 +100,7 @@ sapply(c(1:20), function(topic) {
     n <- 14
     ldays <- everynth(dateRange(v$day),n)
     v$dd <- as.Date(v$day)
-    f <- mean
+    f <- zeromean
     vals <- sapply(ldays, function(day) { f(v[v$dd >= as.Date(day) & v$dd < as.Date(day)+n, ttopic]) })
     polyplot(vals, ldays, ourTitle = ttopic, color=colors[topic])
     lines(lowess(vals))

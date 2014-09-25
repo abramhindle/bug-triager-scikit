@@ -33,7 +33,7 @@ In ubuntu 14.04:
 
 sudo apt-get update
 sudo apt-get install git r-cran-zoo r-cran-zoo ruby curl vim-gnome r-cran-zoo r-base-core python-nltk build-essential vowpal-wabbit libxml-xpath-perl libxml-dom-perl libjson-perl emacs24
-sudo 
+sudo gem install octokit
 sudo cpan -f VCI
 
 in R you can optionally install:

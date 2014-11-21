@@ -66,6 +66,7 @@ class GH
       puts "Closed Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "closed", :page => page)
       issues = issues + temp_issues;
+      sleep 1
     end while not temp_issues.empty?
     temp_issues = [] 
     page = 0
@@ -74,14 +75,14 @@ class GH
       puts "Open Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "open", :page => page)
       issues = issues + temp_issues;
+      sleep 1
     end while not temp_issues.empty?
     issues = issues.map { |issue|
                           r = issue.to_hash() 
-			  r[:user] = r[:user].to_hash
+			  r[:user] = r[:user] ? r[:user].to_hash : nil
 			  r[:assignee] = r[:assignee] ? r[:assignee].to_hash : nil
                           r[:pull_request] = r[:pull_request] ? r[:pull_request].to_hash : nil
-			  r[:labels] = r[:labels].map { | label | 
-                                                        label.to_hash }
+			  r[:labels] = r[:labels] ? r[:labels].map { | label | label.to_hash } : nil 
 			  r }
     puts issues
     @issues = issues
@@ -113,6 +114,7 @@ class GH
       comments += newcomments
       done = newcomments == []
       page = page + 1
+      sleep 1
     end
     page = 1
     done = false
@@ -122,6 +124,7 @@ class GH
       comments += newcomments
       done = newcomments == []
       page = page + 1
+      sleep 1
     end
     comments = comments.map { |comment| 
                               r = comment.to_hash

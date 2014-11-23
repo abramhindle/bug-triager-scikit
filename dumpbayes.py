@@ -29,6 +29,9 @@ def extract_row(issue):
 data = [extract_row(issue) for issue in large["rows"]]
 datawo = [extract_row(issue) for issue in large["rows"] if issue["doc"]["owner"] != ""]
 
+print("%s,%s,%d" % (prefixstr,"TotalIssues",len(data)))
+print("%s,%s,%d" % (prefixstr,"AssignedIssues",len(datawo)))
+
 def rank(resrow, correct,names):
     namet = [(val,names[i]) for i, val in enumerate(resrow)]
     namet.sort()

@@ -1,4 +1,64 @@
-GitHub Issue Tracker LDA Summarizer
+=== Text Learner Bug Triagers ===
+
+This project implements a few simple bug triagers. They should act on text data to guesstimate the assignees for the bugs.
+
+=== Expectations ===
+
+It expects that you mirrored a github repo in the data directory
+
+e.g. you ran mkdir data; bash -x get-big.sh
+
+Then you ran the triager on the large.json files by
+
+    cd data
+    bash summarize.sh
+    bash means.sh
+
+=== Learners ===
+
+MultiNaiveBayesNB should be similar to the work by Anvik et al. on triaging. It uses 1 NaiveBayes classifier per assignee.
+
+NaiveBayesNB is a classifier and it keeps a corpus for each label (assignee) but it is half of the complexity of MultiNaiveBayesNB.
+
+ZeroR is not quite ZeroR but it is a static ranking of assignees from the training set ordered by who was assigned the most bugs.
+
+SVM is SVC from scikit-learn, it uses a simple linear kernel I think.
+
+Random is 100% random 100% of the time. Just a shuffling of orders.
+
+=== Evaluation Measures ===
+
+* Top1 -- how often the first ranked result is the correct one. This is similar to a single > 2-class classifier
+
+* Top5 -- how often the right assignee is in the top5
+
+* MRR -- Mean Reciprocal Rank -- 1.0 is perfect, 0.5 is 50% in the first 2, 0.25 is in the first 4 and so on.
+
+=== Current Results ===
+
+On 16 projects: angular.js brackets bundler edx-platform elasticsearch fog framework gaia Ghost julia rails salt scala travis-ci www.html5rocks.com yui3
+
+    SVM MRR 0.401917
+    SVM Top1 0.235659
+    SVM Top5 0.596484
+    ZeroR MRR 0.421576
+    ZeroR Top1 0.241504
+    ZeroR Top5 0.635401
+    Random MRR 0.143814
+    Random Top1 0.0359856
+    Random Top5 0.190077
+    MultiNaiveBayesNB MRR 0.691587
+    MultiNaiveBayesNB Top1 0.537964
+    MultiNaiveBayesNB Top5 0.897886
+    NaiveBayesNB MRR 0.658102
+    NaiveBayesNB Top1 0.497915
+    NaiveBayesNB Top5 0.873365
+
+
+
+=== GitHub Issue Tracker LDA Summarizer ===
+
+Using the powers of code cloning this repo is based on an LDA repo.
 
 === Use ===
 

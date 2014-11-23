@@ -178,16 +178,17 @@ class GH
       newissue = Hash.new
       newissue["_id"] = issue[:number]
       newissue["created_at"] = issue[:created_at]
-      newissue["reportedBy"] = issue[:user][:login]
+      newissue["reportedBy"] = (issue[:user])?issue[:user][:login]:""
       newissue["owner"] = ((issue[:assignee])?issue[:assignee][:login]:"")
       newissue["content"] = (issue[:title] ? issue[:title] : "") + "\n" + (issue[:body] ? issue[:body] : "")
 #       puts(issue["comments"].length.to_s)
-      newissue["comments"] = issue["comments"].map { |comment| 
-        newcomment = Hash.new
-        newcomment["content"] = comment[:body]
-        newcomment["author"] = comment[:user].is_a?(Hash) ? comment[:user][:login] : ""
-	newcomment
-      }
+      newissue["comments"] = [] 
+      #issue["comments"].map { |comment| 
+      #  newcomment = Hash.new
+      #  newcomment["content"] = comment[:body]
+      #  newcomment["author"] = comment[:user].is_a?(Hash) ? comment[:user][:login] : ""
+#	newcomment
+#      }
       { "doc" => newissue }
     }
     return JSON.pretty_generate( {
@@ -198,13 +199,12 @@ end
 
 gh = GH.new(REPO);
 issues = gh.get_issues();
-comments = gh.get_comments();
-1
+#comments = gh.get_comments();
 issues_json = JSON.pretty_generate( issues )
 File.new("issues.json","w").write( issues_json )
-comments_json = JSON.pretty_generate( comments )
-File.new("comments.json","w").write( comments_json )
-issues_json = JSON.pretty_generate( gh.issues )
-File.new("issues.json","w").write( issues_json )
+#comments_json = JSON.pretty_generate( comments )
+#File.new("comments.json","w").write( comments_json )
+#issues_json = JSON.pretty_generate( gh.issues )
+#File.new("issues.json","w").write( issues_json )
 File.new("large.json","w").write( gh.generate_large_json )
 

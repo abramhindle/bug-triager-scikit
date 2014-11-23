@@ -71,7 +71,19 @@ def eval_tuple(p, labels, names):
 
 # print("MRR %f\nTop 1 %f\nTop 5 %f" % eval_tuple(p,labels,names))
 
-def run_learn(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
+""" repeated parameters are saying hey you need a class here! """
+
+def get_proba(clf, counttf):
+    return clf.predict_proba(counttf)
+
+def get_log_proba(clf, counttf):
+    return clf.predict_log_proba(counttf)
+
+
+def run_ourlearner(learner, prob_getter, train_set, train_labels, test_set, test_labels, tfidfcounts=""):
+    """ learner is a learner that we can call predict_proba or predict_log_proba on
+        prob_getter will get predict_proba or predict_log_proba for us
+    """
     cv = CountVectorizer()
     counts = cv.fit_transform(train_set + [tfidfcounts])
     tf = TfidfTransformer(use_idf=False).fit(counts)
@@ -79,54 +91,30 @@ def run_learn(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
     counttf = tf.transform(counts2)
     # counttf is the counts of everything
     labels = test_labels
-    clf = MultinomialNB().fit(counttf, labels)
+    clf = learner.fit(counttf, labels)
     #print(metrics.classification_report(labels, predicted))
-    p = clf.predict_log_proba(counttf)
+    p = prob_getter(clf,counttf)
     names = clf.classes_
     return eval_tuple(p, test_labels, names)
+
+
+def run_logproba(learner, train_set, train_labels, test_set, test_labels, tfidfcounts=""):
+    return run_ourlearner(learner, get_log_proba, train_set, train_labels, test_set, test_labels,tfidfcounts=tfidfcounts)
+
+def run_proba(learner, train_set, train_labels, test_set, test_labels, tfidfcounts=""):
+    return run_ourlearner(learner, get_proba, train_set, train_labels, test_set, test_labels, tfidfcounts=tfidfcounts)
+
+
+def run_learn(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
+    return run_logproba(MultinomialNB(),train_set, train_labels, test_set, test_labels, tfidfcounts=tfidfcounts)
 
 def run_onevsrest(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
-    cv = CountVectorizer()
-    counts = cv.fit_transform(train_set + [tfidfcounts])
-    tf = TfidfTransformer(use_idf=False).fit(counts)
-    counts2 = cv.fit_transform(test_set)
-    counttf = tf.transform(counts2)
-    # counttf is the counts of everything
-    labels = test_labels
-    clf = OneVsRestClassifier(MultinomialNB()).fit(counttf, labels)
-    #print(metrics.classification_report(labels, predicted))
-    p = clf.predict_proba(counttf)
-    names = clf.classes_
-    return eval_tuple(p, test_labels, names)
-
-#def run_linsvc(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
-#    cv = CountVectorizer()
-#    counts = cv.fit_transform(train_set + [tfidfcounts])
-#    tf = TfidfTransformer(use_idf=False).fit(counts)
-#    counts2 = cv.fit_transform(test_set)
-#    counttf = tf.transform(counts2)
-#    # counttf is the counts of everything
-#    labels = test_labels
-#    clf = sklearn.svm.LinearSVC().fit(counttf, labels)
-#    #print(metrics.classification_report(labels, predicted))
-#    p = clf.predict_logproba(counttf)
-#    names = clf.classes_
-#    return eval_tuple(p, test_labels, names)
+    learner = OneVsRestClassifier(MultinomialNB())
+    return run_proba(learner,train_set, train_labels, test_set, test_labels, tfidfcounts=tfidfcounts)
 
 def run_svc(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
-    cv = CountVectorizer()
-    counts = cv.fit_transform(train_set + [tfidfcounts])
-    tf = TfidfTransformer(use_idf=False).fit(counts)
-    counts2 = cv.fit_transform(test_set)
-    counttf = tf.transform(counts2)
-    # counttf is the counts of everything
-    labels = test_labels
-    clf = sklearn.svm.SVC(probability=True).fit(counttf, labels)
-    #print(metrics.classification_report(labels, predicted))
-    p = clf.predict_log_proba(counttf)
-    names = clf.classes_
-    return eval_tuple(p, test_labels, names)
-
+    learner = sklearn.svm.SVC(probability=True)
+    return run_logproba(learner,train_set, train_labels, test_set, test_labels, tfidfcounts=tfidfcounts)
 
 def run_zeror(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
     c = Counter(train_labels)
@@ -142,6 +130,7 @@ def run_random(train_set, train_labels, test_set, test_labels, tfidfcounts=""):
     
 
 def split_learn(run_learner, dataset, labels):
+   """ 90/10 train/test splitter """
    shuff = shuffle(range(0,len(dataset)))
    spliti = int(len(labels) / 10)
    test_set = [dataset[shuff[i]] for i in range(0, spliti)]

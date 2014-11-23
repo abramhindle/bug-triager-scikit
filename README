@@ -40,23 +40,30 @@ Random is 100% random 100% of the time. Just a shuffling of orders.
 
 On 16 projects: angular.js brackets bundler edx-platform elasticsearch fog framework gaia Ghost julia rails salt scala travis-ci www.html5rocks.com yui3
 
-    SVM MRR 0.401917
-    SVM Top1 0.235659
-    SVM Top5 0.596484
-    ZeroR MRR 0.421576
-    ZeroR Top1 0.241504
-    ZeroR Top5 0.635401
-    Random MRR 0.143814
-    Random Top1 0.0359856
-    Random Top5 0.190077
-    MultiNaiveBayesNB MRR 0.691587
-    MultiNaiveBayesNB Top1 0.537964
-    MultiNaiveBayesNB Top5 0.897886
-    NaiveBayesNB MRR 0.658102
-    NaiveBayesNB Top1 0.497915
-    NaiveBayesNB Top5 0.873365
-
-
+    SVM,MRR,0.520951
+    SVM,Top1,0.354941
+    SVM,Top5,0.726991
+    MultiNaiveBayesNB,MRR,0.501969
+    MultiNaiveBayesNB,Top1,0.334393
+    MultiNaiveBayesNB,Top5,0.706809
+    NaiveBayesNB,MRR,0.497236
+    NaiveBayesNB,Top1,0.327556
+    NaiveBayesNB,Top5,0.705118
+    5NN,MRR,0.472084
+    5NN,Top1,0.33096
+    5NN,Top5,0.638322
+    ZeroR,MRR,0.448443
+    ZeroR,Top1,0.266003
+    ZeroR,Top5,0.663581
+    3NN,MRR,0.441708
+    3NN,Top1,0.303654
+    3NN,Top5,0.56599
+    1NN,MRR,0.398709
+    1NN,Top1,0.318214
+    1NN,Top5,0.439218
+    Random,MRR,0.153762
+    Random,Top1,0.0409996
+    Random,Top5,0.208068
 
 === GitHub Issue Tracker LDA Summarizer ===
 

@@ -2,6 +2,8 @@
 
 This project implements a few simple bug triagers. They should act on text data to guesstimate the assignees for the bugs.
 
+The learning parts are in python3
+
 === Expectations ===
 
 It expects that you mirrored a github repo in the data directory

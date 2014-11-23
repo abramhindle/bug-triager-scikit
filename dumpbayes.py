@@ -19,8 +19,11 @@ import sys
 
 prefixstr = os.path.basename(os.getcwd())
 
+jsonname = "large.json"
+if len(sys.argv) > 1:
+    jsonname = sys.argv[1]
 
-large = json.load(open("large.json"))
+large = json.load(open(jsonname))
 
 def extract_row(issue):
     doc = issue["doc"]

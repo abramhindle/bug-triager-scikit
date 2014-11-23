@@ -6,4 +6,10 @@ CSVS:= $(subst .json,.csv,$(JSONS))
 .json.csv:
 	bash learner.sh $< 
 
-all: $(CSVS)
+runs.csv: $(CSVS)
+	cat $(CSVS) > runs.csv
+
+means.csv: runs.csv
+	bash means.sh | tee means.csv
+
+all: runs.csv means.csv

@@ -1,5 +1,5 @@
 #!/bin/bash
-for classifier in SVM ZeroR Random MultiNaiveBayesNB NaiveBayesNB
+for classifier in SVM ZeroR Random MultiNaiveBayesNB NaiveBayesNB 1NN 3NN 5NN 
 do
 	for evalm in MRR Top1 Top5
 	do

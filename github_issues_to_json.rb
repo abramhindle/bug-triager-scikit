@@ -41,6 +41,25 @@ REPO = "#{USER}/#{PROJECT}"
 
 puts "Getting issues from Github..."
 
+if !Dir.exists?("tmp")
+    Dir.mkdir("tmp")
+end
+
+def write_issues(prefix, page, issues)
+    filename = "tmp/#{ prefix }-#{ page }.json"
+    issues_json = JSON.pretty_generate( issues )
+    File.new(filename,"w").write( issues_json )
+end
+
+def issue_to_hash(issue)
+    r = issue.to_hash() 
+    r[:user] = r[:user] ? r[:user].to_hash : nil
+    r[:assignee] = r[:assignee] ? r[:assignee].to_hash : nil
+    r[:pull_request] = r[:pull_request] ? r[:pull_request].to_hash : nil
+    r[:labels] = r[:labels] ? r[:labels].map { | label | label.to_hash } : nil
+    return r
+end
+
 class GH
   attr_accessor :repo
   attr_accessor :client
@@ -65,6 +84,8 @@ class GH
       page = page + 1
       puts "Closed Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "closed", :page => page)
+      temp_issues = temp_issues.map { |issue| issue_to_hash(issue) };
+      write_issues("closed", page, temp_issues);
       issues = issues + temp_issues;
       sleep 1
     end while not temp_issues.empty?
@@ -74,17 +95,13 @@ class GH
       page = page + 1
       puts "Open Issues Page #{page}"
       temp_issues = client.list_issues(repo, :state => "open", :page => page)
-      issues = issues + temp_issues;
+      temp_issues = temp_issues.map { |issue| issue_to_hash(issue) };
+      write_issues("open", page, temp_issues);
+      issues = issues + temp_issues
       sleep 1
     end while not temp_issues.empty?
-    issues = issues.map { |issue|
-                          r = issue.to_hash() 
-			  r[:user] = r[:user] ? r[:user].to_hash : nil
-			  r[:assignee] = r[:assignee] ? r[:assignee].to_hash : nil
-                          r[:pull_request] = r[:pull_request] ? r[:pull_request].to_hash : nil
-			  r[:labels] = r[:labels] ? r[:labels].map { | label | label.to_hash } : nil 
-			  r }
-    puts issues
+    #issues = issues.map { |issue| issue_to_hash(r) }
+    #puts issues
     @issues = issues
     return issues
   end

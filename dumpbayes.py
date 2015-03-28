@@ -14,8 +14,11 @@ import os.path
 import sklearn.svm
 import random
 import sys
+import logging
 #import pdb
 
+def debug(str):
+    print(str,file=sys.stderr)
 
 prefixstr = os.path.basename(os.getcwd())
 
@@ -30,7 +33,9 @@ def extract_row(issue):
     return [doc["_id"],doc["owner"],doc["content"]]
 
 data = [extract_row(issue) for issue in large["rows"]]
+data.sort()
 datawo = [extract_row(issue) for issue in large["rows"] if issue["doc"]["owner"] != ""]
+datawo.sort()
 
 print("%s,%s,%d" % (prefixstr,"TotalIssues",len(data)))
 print("%s,%s,%d" % (prefixstr,"AssignedIssues",len(datawo)))
@@ -46,7 +51,12 @@ def rank(resrow, correct,names):
         return len(names) + 1
 
 def topn(resrow, correct,names,n=5):
-    namet = [(val,names[i]) for i, val in enumerate(resrow)]
+    try:
+	# there's a chance we get a bad index like -inf in there
+        namet = [(val,names[i]) for i, val in enumerate(resrow)]
+    except IndexError as e:
+        debug(e)
+        return False
     namet.sort()
     namet.reverse()
     l = [x[1] for x in namet]
@@ -56,8 +66,12 @@ def topn(resrow, correct,names,n=5):
         return False
 
 def mrr(p, labels, names):
-    ranks = [ rank(row, labels[i], names) for i, row in enumerate(p)]
-    rranks = [1.0/irank for irank in ranks]
+    try:
+        ranks = [ rank(row, labels[i], names) for i, row in enumerate(p)]
+        rranks = [1.0/irank for irank in ranks]
+    except IndexError as e:
+        debug(e)
+        return 0
     return np.mean(rranks)
 
 def topns(p, labels, names, n=5):
@@ -91,9 +105,13 @@ def run_ourlearner(learner, prob_getter, train_set, train_labels, test_set, test
     labels = test_labels
     # train the learner
     # pdb.set_trace()
-    clf = learner.fit(counttrain, train_labels)
     #print(metrics.classification_report(labels, predicted))
-    p = prob_getter(clf,counttest)
+    try:
+        clf = learner.fit(counttrain, train_labels)
+        p = prob_getter(clf,counttest)
+    except ValueError as e:
+        debug(e)
+        return (0,False,False)
     names = clf.classes_
     return eval_tuple(p, test_labels, names)
 
@@ -154,6 +172,42 @@ def split_learn(run_learner, dataset, labels):
    train_labels = [labels[shuff[i]] for i in range(spliti,len(labels))]
    return run_learner( train_set, train_labels, test_set, test_labels )
 
+# THIS IS BROKEN
+def time_splitter(run_learner, n, dataset, labels):
+   test_set = [dataset[i] for i in range(0, n)]
+   test_labels = [labels[i] for i in range(0, n)]
+   train_set = [dataset[i] for i in range(n,len(labels))]
+   train_labels = [labels[i] for i in range(n,len(labels))]
+   return run_learner( train_set, train_labels, test_set, test_labels )
+
+def single_splitter(run_learner, n, dataset, labels):
+   train_set = [dataset[i] for i in range(0, n)]
+   train_labels = [labels[i] for i in range(0, n)]
+   test_set = [dataset[i] for i in range(n,n+1)]
+   test_labels = [labels[i] for i in range(n,n+1)]
+   #debug("\t%s %s %s %s" % (len(train_set),len(train_labels),len(test_set),len(test_labels)  ))
+   return run_learner( train_set, train_labels, test_set, test_labels )
+
+
+def all_time(learner,splits):
+    maxn = len(datawo) - 1
+    step = int(len(datawo) / splits)
+    res = [list(time_splitter(learner, y, [x[2] for x in datawo],[x[1] for x in datawo])) for y in range(1,maxn,step)]
+    return ( np.mean([x[0] for x in res]), 
+             np.mean([x[1] for x in res]), 
+             np.mean([x[2] for x in res]))
+
+def train_past(learner):
+    '''
+        ignore splits
+    '''
+    maxn = len(datawo) - 1
+    res = [list(single_splitter(learner, y, [x[2] for x in datawo],[x[1] for x in datawo])) for y in range(1,maxn)]
+    return ( np.mean([x[0] for x in res]), 
+             np.mean([x[1] for x in res]), 
+             np.mean([x[2] for x in res]))
+
+
 def single_run(learner):
     return split_learn(learner, [x[2] for x in datawo],[x[1] for x in datawo])
 
@@ -167,7 +221,7 @@ def multi_run(learner,n=50):
 def csv_str(lname,t):
     return "%s,%s,MRR,%f\n%s,%s,Top1,%f\n%s,%s,Top5,%f" % (prefixstr,lname,t[0],prefixstr,lname,t[1],prefixstr,lname,t[2])
 
-repeats = 50
+repeats = 100
 
 jobs = [
     ["Random", run_random],
@@ -180,7 +234,9 @@ jobs = [
     ["SVM", run_svc]]
 
 for job in jobs:
-    print(csv_str(job[0], multi_run(job[1], repeats)))
+    #print(csv_str(job[0], multi_run(job[1], repeats)))
+    debug(job[0])
+    print(csv_str(job[0], train_past(job[1])))
     sys.stdout.flush()
 
 #print(csv_str("LinearSVM",multi_run(run_linsvc,50)))

@@ -131,13 +131,28 @@ All code here is licensed under the Apache 2.0 unless otherwise specified.
 
 Furthermore if you are an academic. Cite our work! 
 
-@inproceedings{hindle2012rri,
-	Author = {Abram Hindle and Christian Bird and Thomas Zimmermann and Nachiappan Nagappan},
-	Title = {Relating Requirements to Implementation via Topic Analysis: Do Topics Extracted from Requirements Make Sense to Managers and Developers?},
-	Booktitle = {Proceedings of the 28th IEEE International Conference on Software Maintenance},
-	Year = {2012},
-	Publisher = {IEEE}
+```
+@inproceedings{ali2016FASE2016cbtlqpfba,
+ accepted = {2015-12-18},
+ author = {Ali Sajedi Badashian and Abram Hindle and Eleni Stroulia},
+ authors = {Ali Sajedi Badashian, Abram Hindle, Eleni Stroulia},
+ booktitle = {International Conference on Fundamental Approaches to Software Engineering (FASE 2016)},
+ date = {2016-04-02},
+ doi = {10.1007/978-3-662-49665-7_14},
+ funding = {NSERC Discovery},
+ location = {Eindhoven, The Netherlands},
+ pagerange = {231--248},
+ pages = {231--248},
+ payurl = {http://link.springer.com/chapter/10.1007%2F978-3-662-49665-7_14},
+ rate = {27%},
+ role = {Co-author},
+ title = {Crowdsourced Bug Triaging: Leveraging Q\&A Platforms for Bug Assignment},
+ type = {inproceedings},
+ url = {http://softwareprocess.ca/pubs/sajedi2016FASE-crowdsourced-bug-triage.pdf},
+ venue = {International Conference on Fundamental Approaches to Software Engineering (FASE 2016)},
+ year = {2016}
 }
+```
 
 === Wait how many languages? ===
 
